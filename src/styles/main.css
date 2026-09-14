@@ -1,0 +1,991 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   设计令牌
+   颜色取 iOS 系统色；文字色不用半透明前景，因为面板里大量文字压在
+   半透明材质上，alpha 前景的对比度会随背后的内容漂移。
+   ============================================================ */
+
+@theme {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro SC', 'SF Pro Text', 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono:
+    ui-monospace, 'SF Mono', SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, monospace;
+
+  /* 字距随字号走：大标题收紧，小字放宽。一个值管所有尺寸一定有一处是错的 */
+  --tracking-display: -0.022em;
+  --tracking-title: -0.014em;
+  --tracking-body: -0.004em;
+  --tracking-caption: 0.004em;
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  /* 越大的面读起来越厚，所以模糊更强、投影更深 */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 5%);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 6%), 0 4px 12px rgb(0 0 0 / 4%);
+  --shadow-md: 0 1px 3px rgb(0 0 0 / 5%), 0 8px 24px rgb(0 0 0 / 8%);
+  --shadow-lg: 0 4px 14px rgb(0 0 0 / 8%), 0 24px 60px rgb(0 0 0 / 18%);
+  --shadow-xl: 0 8px 24px rgb(0 0 0 / 12%), 0 40px 100px rgb(0 0 0 / 30%);
+  --shadow-lift: 0 2px 6px rgb(0 0 0 / 8%), 0 18px 44px rgb(0 0 0 / 16%);
+
+  /* 接近临界阻尼弹簧的手感，不过冲 */
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-spin-slow: spin 0.8s linear infinite;
+
+  /* —— 浅色 */
+  --color-canvas: #f2f2f7;
+  --color-surface: #ffffff;
+  --color-surface-2: #f7f7fa;
+  --color-surface-3: #e9e9ee;
+
+  --color-separator: rgb(60 60 67 / 12%);
+  --color-separator-strong: rgb(60 60 67 / 26%);
+
+  --color-ink: #1c1c1e;
+  --color-ink-muted: #5c5c66;
+  --color-ink-subtle: #83838d;
+
+  --color-accent: #0071e3;
+  --color-accent-hover: #0063c8;
+  --color-accent-ink: #0059b3;
+  --color-accent-soft: #e7f1fd;
+  --color-accent-ring: rgb(0 113 227 / 22%);
+
+  --color-danger: #ff3b30;
+  --color-danger-ink: #d70015;
+  --color-danger-soft: #ffeceb;
+
+  --color-success: #34c759;
+  --color-success-ink: #1a7f37;
+  --color-success-soft: #e8f8ec;
+
+  --color-warning: #ff9500;
+  --color-warning-ink: #9a5b00;
+  --color-warning-soft: #fff4e5;
+
+  --color-material: rgb(255 255 255 / 72%);
+  --color-material-strong: rgb(255 255 255 / 90%);
+  --color-scrim: rgb(11 11 15 / 40%);
+}
+
+/* 深色不是把浅色反过来：底层要更深、材质要更厚，才能保住同样的层级感 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --color-canvas: #0b0b0d;
+    --color-surface: #1c1c1e;
+    --color-surface-2: #242426;
+    --color-surface-3: #2e2e31;
+
+    --color-separator: rgb(255 255 255 / 12%);
+    --color-separator-strong: rgb(255 255 255 / 26%);
+
+    --color-ink: #f2f2f7;
+    --color-ink-muted: #a1a1aa;
+    --color-ink-subtle: #75757e;
+
+    --color-accent: #0a84ff;
+    --color-accent-hover: #3d9bff;
+    --color-accent-ink: #64b5ff;
+    --color-accent-soft: rgb(10 132 255 / 18%);
+    --color-accent-ring: rgb(10 132 255 / 32%);
+
+    --color-danger: #ff453a;
+    --color-danger-ink: #ff6961;
+    --color-danger-soft: rgb(255 69 58 / 16%);
+
+    --color-success: #30d158;
+    --color-success-ink: #4ade80;
+    --color-success-soft: rgb(48 209 88 / 16%);
+
+    --color-warning: #ff9f0a;
+    --color-warning-ink: #fbbf24;
+    --color-warning-soft: rgb(255 159 10 / 16%);
+
+    --color-material: rgb(28 28 30 / 72%);
+    --color-material-strong: rgb(28 28 30 / 92%);
+    --color-scrim: rgb(0 0 0 / 55%);
+
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 40%);
+    --shadow-sm: 0 1px 3px rgb(0 0 0 / 40%), 0 4px 12px rgb(0 0 0 / 30%);
+    --shadow-md: 0 1px 3px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 44%);
+    --shadow-lg: 0 4px 14px rgb(0 0 0 / 40%), 0 24px 60px rgb(0 0 0 / 60%);
+    --shadow-xl: 0 8px 24px rgb(0 0 0 / 45%), 0 40px 100px rgb(0 0 0 / 70%);
+    --shadow-lift: 0 2px 6px rgb(0 0 0 / 45%), 0 18px 44px rgb(0 0 0 / 60%);
+  }
+}
+
+/* ============================================================
+   基础
+   ============================================================ */
+
+@layer base {
+  html {
+    height: 100%;
+  }
+
+  body {
+    min-height: 100%;
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    letter-spacing: var(--tracking-body);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  figure {
+    margin: 0;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+  }
+
+  a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  code,
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-ink);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-separator-strong) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-separator-strong);
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* 拖动排序期间：光标和选区都要锁住，否则划过文字会选中一大片 */
+  .is-reordering,
+  .is-reordering * {
+    cursor: grabbing !important;
+    user-select: none !important;
+  }
+}
+
+/* ============================================================
+   可复用的复合样式
+   只留「写 15 遍工具类还不如起个名字」的东西；
+   一次性的排版与布局一律走工具类。
+   ============================================================ */
+
+@layer components {
+  /* —— 材质 —— */
+  .material {
+    background-color: var(--color-material);
+    backdrop-filter: blur(30px) saturate(180%);
+  }
+
+  .material-strong {
+    background-color: var(--color-material-strong);
+    backdrop-filter: blur(40px) saturate(180%);
+  }
+
+  /* —— 按钮 —— */
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md font-medium
+      whitespace-nowrap select-none disabled:cursor-not-allowed disabled:opacity-45;
+    padding: 6px 13px;
+    font-size: 13px;
+    transition:
+      background-color 180ms var(--ease-out),
+      border-color 180ms var(--ease-out),
+      color 180ms var(--ease-out),
+      box-shadow 180ms var(--ease-out),
+      /* 按下的反馈要「立刻」出现，所以位移单独用更短的时长 */ transform 110ms var(--ease-out);
+  }
+
+  .btn:not(:disabled):active {
+    transform: scale(0.97);
+  }
+
+  .btn--primary {
+    background-color: var(--color-accent);
+    color: #fff;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .btn--primary:hover:not(:disabled) {
+    background-color: var(--color-accent-hover);
+  }
+
+  .btn--outline {
+    border: 1px solid var(--color-separator-strong);
+    background-color: var(--color-surface);
+  }
+
+  .btn--outline:hover:not(:disabled) {
+    background-color: var(--color-surface-3);
+  }
+
+  .btn--default {
+    background-color: var(--color-surface-3);
+  }
+
+  .btn--default:hover:not(:disabled) {
+    background-color: var(--color-separator);
+  }
+
+  .btn--ghost {
+    color: var(--color-ink-muted);
+  }
+
+  .btn--ghost:hover:not(:disabled) {
+    background-color: var(--color-surface-3);
+    color: var(--color-ink);
+  }
+
+  .btn--danger {
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger-ink);
+  }
+
+  .btn--danger:hover:not(:disabled) {
+    background-color: var(--color-danger);
+    color: #fff;
+  }
+
+  .btn--sm {
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+  }
+
+  .btn--icon {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+  }
+
+  /* —— 卡片 —— */
+  .card {
+    border: 1px solid var(--color-separator);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .card__header {
+    @apply flex items-center gap-2.5 px-4 py-3.5;
+    border-bottom: 1px solid var(--color-separator);
+  }
+
+  .card__title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: var(--tracking-title);
+  }
+
+  .card__body {
+    @apply p-4;
+  }
+
+  /* —— 徽标 —— */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full font-medium whitespace-nowrap;
+    padding: 2px 8px;
+    background-color: var(--color-surface-3);
+    color: var(--color-ink-muted);
+    font-size: 11.5px;
+  }
+
+  .badge--accent {
+    background-color: var(--color-accent-soft);
+    color: var(--color-accent-ink);
+  }
+
+  .badge--success {
+    background-color: var(--color-success-soft);
+    color: var(--color-success-ink);
+  }
+
+  .badge--danger {
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger-ink);
+  }
+
+  .badge--warning {
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning-ink);
+  }
+
+  .badge__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentcolor;
+  }
+
+  /* —— 提示条 —— */
+  .notice {
+    @apply flex gap-2.5 rounded-md;
+    padding: 10px 13px;
+    border: 1px solid var(--color-separator);
+    background-color: var(--color-surface-2);
+    color: var(--color-ink-muted);
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+
+  .notice--accent {
+    border-color: color-mix(in srgb, var(--color-accent) 26%, transparent);
+    background-color: var(--color-accent-soft);
+    color: var(--color-accent-ink);
+  }
+
+  .notice--warning {
+    border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning-ink);
+  }
+
+  .notice--danger {
+    border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger-ink);
+  }
+
+  /* —— 表单 —— */
+  .field__label {
+    @apply flex items-center gap-1.5;
+    font-size: 12.5px;
+    font-weight: 550;
+    color: var(--color-ink-muted);
+  }
+
+  .field__meta {
+    font-size: 11.5px;
+    letter-spacing: var(--tracking-caption);
+    color: var(--color-ink-subtle);
+  }
+
+  .field__counter {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .field__counter--over {
+    color: var(--color-danger-ink);
+    font-weight: 600;
+  }
+
+  .input,
+  .textarea,
+  .select {
+    @apply w-full rounded-md;
+    padding: 6px 10px;
+    border: 1px solid var(--color-separator-strong);
+    background-color: var(--color-surface);
+    font-size: 13px;
+    transition:
+      border-color 160ms var(--ease-out),
+      box-shadow 160ms var(--ease-out),
+      background-color 160ms var(--ease-out);
+  }
+
+  .input:hover:not(:disabled),
+  .textarea:hover:not(:disabled),
+  .select:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--color-accent) 38%, var(--color-separator-strong));
+  }
+
+  .input:focus,
+  .textarea:focus,
+  .select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3.5px var(--color-accent-ring);
+  }
+
+  .input--invalid,
+  .textarea--invalid {
+    border-color: var(--color-danger);
+  }
+
+  .input::placeholder,
+  .textarea::placeholder {
+    color: var(--color-ink-subtle);
+  }
+
+  .input:disabled,
+  .textarea:disabled,
+  .select:disabled {
+    background-color: var(--color-surface-3);
+    color: var(--color-ink-muted);
+    cursor: not-allowed;
+  }
+
+  .textarea {
+    min-height: 68px;
+    resize: vertical;
+    line-height: 1.55;
+  }
+
+  .select {
+    padding-right: 28px;
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentcolor 50%),
+      linear-gradient(135deg, currentcolor 50%, transparent 50%);
+    background-position:
+      calc(100% - 14px) 50%,
+      calc(100% - 9px) 50%;
+    background-repeat: no-repeat;
+    background-size:
+      5px 5px,
+      5px 5px;
+    cursor: pointer;
+  }
+
+  .input--sm,
+  .select--sm {
+    padding: 3px 8px;
+    font-size: 12.5px;
+  }
+
+  .select--sm {
+    padding-right: 24px;
+  }
+
+  /* —— 分段控件 —— */
+  .segmented {
+    @apply inline-flex max-w-full gap-0.5 overflow-x-auto rounded-md p-0.5;
+    border: 1px solid var(--color-separator);
+    background-color: var(--color-surface-3);
+  }
+
+  .segmented__item {
+    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-sm font-medium whitespace-nowrap
+      disabled:cursor-not-allowed disabled:opacity-45;
+    padding: 4px 11px;
+    font-size: 12.5px;
+    color: var(--color-ink-muted);
+    transition:
+      background-color 160ms var(--ease-out),
+      color 160ms var(--ease-out),
+      transform 110ms var(--ease-out);
+  }
+
+  .segmented__item:not(:disabled):active {
+    transform: scale(0.97);
+  }
+
+  .segmented__item:hover:not(:disabled) {
+    color: var(--color-ink);
+  }
+
+  .segmented__item--active {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-xs);
+  }
+
+  /* —— 开关 —— */
+  .switch {
+    @apply inline-flex cursor-pointer items-center gap-2 select-none;
+  }
+
+  .switch input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+
+  .switch__track {
+    @apply relative shrink-0 rounded-full;
+    width: 36px;
+    height: 21px;
+    background-color: var(--color-separator-strong);
+    transition: background-color 180ms var(--ease-out);
+  }
+
+  .switch__thumb {
+    @apply absolute rounded-full bg-white;
+    top: 2.5px;
+    left: 2.5px;
+    width: 16px;
+    height: 16px;
+    box-shadow: var(--shadow-xs);
+    /* 滑块用弹簧曲线：拇指停下来时有一点回稳的手感，但不能过冲 */
+    transition: transform 260ms var(--ease-spring);
+  }
+
+  .switch input:checked + .switch__track {
+    background-color: var(--color-accent);
+  }
+
+  .switch input:checked + .switch__track .switch__thumb {
+    transform: translateX(15px);
+  }
+
+  .switch input:focus-visible + .switch__track {
+    box-shadow: 0 0 0 3.5px var(--color-accent-ring);
+  }
+
+  .switch__label {
+    font-size: 12.5px;
+    color: var(--color-ink-muted);
+  }
+
+  /* —— 校验问题 —— */
+  .issue-list {
+    @apply flex flex-col gap-1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .issue-list__item {
+    @apply flex gap-2;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+
+  .issue-list__bullet {
+    flex: none;
+    opacity: 0.7;
+  }
+
+  /* —— 空状态 —— */
+  .empty {
+    @apply flex flex-col items-center gap-2 rounded-lg px-5 py-12 text-center;
+    border: 1px dashed var(--color-separator-strong);
+    background-color: var(--color-surface-2);
+  }
+
+  .empty__glyph {
+    @apply grid place-items-center rounded-full;
+    width: 52px;
+    height: 52px;
+    background-color: var(--color-surface-3);
+    color: var(--color-ink-subtle);
+  }
+
+  .empty__title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: var(--tracking-title);
+  }
+
+  .empty__desc {
+    max-width: 24rem;
+    color: var(--color-ink-muted);
+    font-size: 12.5px;
+  }
+
+  /* —— 模态框 —— */
+  .modal-mask {
+    @apply fixed inset-0 z-50 flex items-start justify-center overflow-y-auto;
+    padding: 6vh 20px 40px;
+    background-color: var(--color-scrim);
+    animation: fade-in 240ms var(--ease-out) both;
+  }
+
+  .modal {
+    @apply flex w-full flex-col rounded-xl;
+    max-height: 86vh;
+    border: 1px solid var(--color-separator);
+    box-shadow: var(--shadow-xl);
+    /* 材质是「浮现」出来的，不只是淡入：模糊半径和缩放一起动 */
+    animation: materialize 320ms var(--ease-spring) both;
+  }
+
+  .modal--wide {
+    max-width: 860px;
+  }
+
+  .modal--md {
+    max-width: 620px;
+  }
+
+  .modal--sm {
+    max-width: 460px;
+  }
+
+  .modal__header {
+    @apply flex items-start gap-3 rounded-t-xl px-4.5 py-4;
+    border-bottom: 1px solid var(--color-separator);
+  }
+
+  .modal__title {
+    font-size: 15px;
+    font-weight: 640;
+    letter-spacing: var(--tracking-title);
+  }
+
+  .modal__subtitle {
+    margin-top: 2px;
+    color: var(--color-ink-muted);
+    font-size: 12.5px;
+  }
+
+  .modal__body {
+    @apply overflow-y-auto p-4.5;
+  }
+
+  .modal__footer {
+    @apply flex items-center gap-2 rounded-b-xl px-4.5 py-3.5;
+    border-top: 1px solid var(--color-separator);
+  }
+
+  /* —— 提示条 —— */
+  .toasts {
+    @apply fixed right-4.5 bottom-4.5 z-80 flex flex-col gap-2.5;
+    width: min(380px, calc(100vw - 36px));
+  }
+
+  .toast {
+    @apply flex cursor-pointer gap-2.5 rounded-md p-3;
+    border: 1px solid var(--color-separator);
+    box-shadow: var(--shadow-md);
+    animation: toast-in 320ms var(--ease-spring) both;
+  }
+
+  .toast__title {
+    font-size: 13px;
+    font-weight: 580;
+    overflow-wrap: anywhere;
+  }
+
+  .toast__detail {
+    margin-top: 3px;
+    color: var(--color-ink-muted);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    overflow-wrap: anywhere;
+  }
+
+  /* —— 骨架屏 / 加载 —— */
+  .spinner {
+    @apply inline-block rounded-full;
+    width: 13px;
+    height: 13px;
+    border: 2px solid currentcolor;
+    border-right-color: transparent;
+    animation: var(--animate-spin-slow);
+  }
+
+  .skeleton {
+    @apply rounded-md;
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-3) 25%,
+      var(--color-surface-2) 37%,
+      var(--color-surface-3) 63%
+    );
+    background-size: 400% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  /* —— 页面栏 —— */
+  /* 内容从栏下面滚过去，而不是被一条不透明的横条切掉。
+     但材质只在真的有内容被压住时才出现：停在顶部时，那层半透明只是一道
+     没来由的灰底（以及收口用的渐变），而渐变是这里最不该有的东西。 */
+  .page-bar {
+    @apply sticky top-0 z-30;
+    padding-block: 15px 12px;
+    background-color: transparent;
+    backdrop-filter: blur(0) saturate(100%);
+    transition:
+      background-color 240ms var(--ease-out),
+      backdrop-filter 240ms var(--ease-out);
+  }
+
+  .page-bar--scrolled {
+    background-color: var(--color-material);
+    backdrop-filter: blur(30px) saturate(180%);
+  }
+
+  .page-bar__inner {
+    @apply mx-auto flex w-full max-w-[1040px] flex-wrap items-center gap-3 px-7;
+  }
+
+  /* 标题块给一个下限：basis 为 0 时它会一路缩到「一个字一行」，
+     而按钮那组本来能换行 —— 有下限才会去换行，而不是把标题压扁 */
+  .page-bar__heading {
+    @apply min-w-0 flex-1;
+    flex-basis: 17rem;
+  }
+
+  .page-body {
+    @apply mx-auto flex w-full max-w-[1040px] flex-col gap-4 px-7 pb-16;
+  }
+
+  .page-title {
+    font-size: 20px;
+    font-weight: 660;
+    line-height: 1.25;
+    letter-spacing: var(--tracking-display);
+  }
+
+  .page-desc {
+    margin-top: 3px;
+    max-width: 68ch;
+    color: var(--color-ink-muted);
+    font-size: 12.5px;
+  }
+
+  /* —— 标签块 —— */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-sm;
+    padding: 3px 8px;
+    border: 1px solid var(--color-separator);
+    background-color: var(--color-surface-2);
+    font-size: 11.5px;
+  }
+
+  .chip__type {
+    color: var(--color-ink-subtle);
+    font-size: 10.5px;
+  }
+
+  /* —— 可排序列表 —— */
+  /* 菜单卡片与面板元素共用同一套拖拽语言：位移量由排序逻辑逐帧写进 --drag-offset */
+  .drag-item {
+    transition:
+      transform 260ms var(--ease-spring),
+      border-color 160ms var(--ease-out),
+      box-shadow 200ms var(--ease-out);
+    transform: translateY(var(--drag-offset, 0));
+  }
+
+  .drag-item--dragging {
+    /* 跟手的那张不能有任何过渡，否则手感会「拖泥带水」 */
+    transition: none;
+    position: relative;
+    z-index: 20;
+    box-shadow: var(--shadow-lift);
+    /* 抬起来一点：被拿住的东西离眼睛更近 */
+    transform: translateY(var(--drag-offset, 0)) scale(1.012);
+  }
+
+  .drag-item__grip {
+    @apply grid flex-none place-items-center;
+    padding: 4px;
+    color: var(--color-ink-subtle);
+    cursor: grab;
+    /* 触屏上不要把手势让给滚动 */
+    touch-action: none;
+    border-radius: var(--radius-xs);
+    transition:
+      color 160ms var(--ease-out),
+      background-color 160ms var(--ease-out);
+  }
+
+  .drag-item__grip:hover {
+    background-color: var(--color-surface-3);
+    color: var(--color-ink-muted);
+  }
+
+  .drag-item--dragging .drag-item__grip {
+    cursor: grabbing;
+  }
+
+  .drag-item__index {
+    @apply grid flex-none place-items-center rounded-xs;
+    width: 20px;
+    height: 20px;
+    background-color: var(--color-surface-3);
+    color: var(--color-ink-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* —— 侧栏导航 —— */
+  .nav-item {
+    @apply flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2.5 text-left;
+    padding-block: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--color-ink-muted);
+    transition:
+      background-color 160ms var(--ease-out),
+      color 160ms var(--ease-out),
+      transform 110ms var(--ease-out);
+  }
+
+  .nav-item:active {
+    transform: scale(0.98);
+  }
+
+  .nav-item:hover {
+    background-color: var(--color-surface-3);
+    color: var(--color-ink);
+  }
+
+  .nav-item--active {
+    background-color: var(--color-accent-soft);
+    color: var(--color-accent-ink);
+    font-weight: 600;
+  }
+
+  .nav-item--active:hover {
+    background-color: var(--color-accent-soft);
+    color: var(--color-accent-ink);
+  }
+}
+
+/* ============================================================
+   关键帧
+   ============================================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes materialize {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.965);
+    backdrop-filter: blur(0) saturate(100%);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 50%;
+  }
+
+  to {
+    background-position: 0 50%;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   无障碍偏好
+   减少动效不等于没有反馈：位移动画换成淡入淡出，状态类动画（转圈）保留。
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .modal,
+  .toast {
+    animation: fade-in 200ms ease both;
+    transform: none;
+  }
+
+  .modal-mask {
+    animation: fade-in 160ms ease both;
+  }
+
+  .switch__thumb {
+    transition: none;
+  }
+
+  .drag-item {
+    transition: none;
+  }
+
+  /* 拖动时的抬起感靠位移表达，缩放去掉也不影响「跟着手走」 */
+  .drag-item--dragging {
+    transform: translateY(var(--drag-offset, 0));
+  }
+
+  .btn:not(:disabled):active,
+  .segmented__item:not(:disabled):active,
+  .nav-item:active {
+    transform: none;
+  }
+}
+
+/* 降低透明度：材质直接变成不透明面，不然文字会糊在背后的内容上 */
+@media (prefers-reduced-transparency: reduce) {
+  .material,
+  .material-strong,
+  .page-bar--scrolled {
+    background-color: var(--color-surface);
+    backdrop-filter: none;
+  }
+}
+
+/* 提高对比度：描边加重、次要文字压深 */
+@media (prefers-contrast: more) {
+  :root {
+    --color-separator: rgb(60 60 67 / 45%);
+    --color-separator-strong: rgb(60 60 67 / 70%);
+    --color-ink-muted: #3c3c43;
+    --color-ink-subtle: #48484f;
+  }
+
+  .material,
+  .material-strong {
+    background-color: var(--color-surface);
+    backdrop-filter: none;
+  }
+
+  .card,
+  .input,
+  .textarea,
+  .select {
+    border-color: var(--color-separator-strong);
+  }
+}
